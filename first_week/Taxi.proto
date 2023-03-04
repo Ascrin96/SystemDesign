@@ -1,0 +1,280 @@
+syntax = "proto3";
+
+package taxi;
+
+//Общие сообщения
+message Point{
+    int32 lat = 1;
+    int32 lon = 2;
+    optional string street = 3;
+    optional int32 building = 5;
+}
+
+message Time{
+    int32 hours = 1;
+    int32 minutes = 2;
+    int32 seconds = 3;
+}
+
+message Route{
+    int32 route_id = 1;
+    Time route_time = 2;
+    repeated Point points = 3;
+}
+
+enum Mode{
+    ECONOM = 0;
+    COMFORT = 1;
+    BUSINESS = 2;
+    CHILDREN = 3;
+}
+
+
+message Taxi{
+    message TaxiStatus{
+        enum TaxiActiveStatus{
+            FREE = 0;
+            BUSY = 1;
+        }
+        TaxiActiveStatus status = 1;
+        bool active = 2;
+    };
+    int32 taxi_id = 1;
+    int32 driver_id = 2;
+    string car_number = 3;
+    string car_make = 4;
+    TaxiActiveStatus taxi_active_status = 5;
+    Point position = 6;
+}
+
+message Driver{
+    int32 driver_id = 1;
+    string name = 2;
+    string surname = 3;
+    string phone_number = 4;
+    float rating = 5;
+}
+
+message User{
+    string name = 1;
+    string surname = 2;
+    string phone_number = 3;
+    string email = 4;
+    float rating = 5;
+}
+
+enum Tag{
+    CLEAN = 0;
+    MUSIC = 1;
+    CALM_DRIVE = 2;
+    ENJOY_TALK = 3;
+}
+
+message Order{
+    int32 taxi_id = 1;
+    int32 user_id = 2;
+    int32 route_id = 3;
+    repeated Point points = 4;
+    optional int32 estimation = 5;
+    optional repeated Tag tags = 6;
+    optional string comment = 7;
+}
+
+message PageMeta{
+    int32 limit = 1;
+    int32 current_page = 2;
+    bool next_page = 3;
+}
+
+enum PaymentType{
+    CASH = 0;
+    CARD = 1;
+    REWARDS = 2;
+}
+
+enum PaymentStatus{
+    PASSED = 0;
+    FAIL = 1;
+}
+
+message Payment{
+    PaymentType  payment_type = 1;
+    PaymentStatus payment_status = 2;
+}
+
+//*********************************
+// Рассчитать время и стоимость маршрута:
+// Request:
+message RouteRequest {
+    repeated Point points = 1;
+    Mode selected_mode = 2;
+}
+
+// Response:
+// 0 - OK
+// 2 - Что-то пошло не так внутри отвечающего
+// 3 - Запрос не корректный
+// 4 - Истёк срок выполнения операции
+message RouteResponse {
+    int32 route_id = 1;
+    Mode selected_mode = 2;
+    map<Mode, int> prices = 3;
+    repeated int32 taxi_ids = 4; // Такси, которые свободны и рядом в соответсвии с тарифом
+}
+//_________________________________
+
+//*********************************
+// Изменить маршрут
+// Request:
+message RouteChangeRequest {
+    int32 route_id = 1;
+    optional repeated Point points = 2;
+    optional Mode selected_mode = 3;
+}
+
+//Response:
+// 0, 2, 3, 4
+// 5 - Маршрут не найден
+message RouteChangeResponse {
+    int32 route_id = 1;
+    Mode selected_mode = 2;
+    map<Mode, int> prices = 3;
+    repeated int32 taxi_ids = 4; // Такси, которые свободны и рядом в соответсвии с тарифом
+}
+//_________________________________
+
+//*********************************
+// Сделать заказ такси по выбранному маршруту
+// Request:
+message OrderTaxiRequest {
+    int32 route_id = 1;
+}
+
+//Response:
+// 0, 2, 3, 4
+// 5 - Маршрут не найден
+message OrderTaxiResponse {
+    int32 route_id = 1;
+    int32 taxi_id = 2;
+    int32 order_id = 3
+    Time time_before_taxi_arrived = 4;
+}
+//_________________________________
+
+//*********************************
+// Получить информацию по такси
+// Request:
+message TaxiRequest {
+    int32 taxi_id = 1;
+}
+
+//Response:
+// 0, 2, 3, 4
+// 5 - Такси не найдено
+message TaxiResponse {
+    Taxi taxi = 1;
+    Point position = 2;
+}
+//_________________________________
+
+//*********************************
+// Посмотреть профиль водителя
+// Request:
+message DriverRequest {
+    int32 driver_id = 1;
+}
+
+//Response:
+// 0, 2, 3, 4
+// 5 - Водитель не найден
+message DriverResponse { // Возможно тут стоит простов вернуть Driver
+    Driver driver = 1;
+}
+//_________________________________
+
+//*********************************
+// Посмотреть профиль клиента
+// Request:
+message UserRequest {
+    int32 user_id = 1;
+}
+
+//Response:
+// 0, 2, 3, 4
+// 5 - Клиент не найден
+message UserResponse { // Возможно тут стоит просто вернуть User
+    User user = 1;
+}
+//_________________________________
+
+//*********************************
+// Изменить данные клиента
+// Request:
+message UserRequest {
+    User new_user = 1;
+}
+
+//Response:
+// 0, 2, 3, 4
+// 5 - Клиент не найден
+//_________________________________
+
+//*********************************
+// Получить загруженность водителей
+// Request:
+message WorkloadRequest {
+    Point position = 1;
+    Mode selected_mode = 2;
+}
+
+//Response:
+// 0, 2, 3, 4
+message WorkloadResponse {
+    float workload = 1; // 0.5 - равное количество такси и клиентов
+}                       // < 0.5 - такси больше, > 0.5 - клиентов больше
+//_________________________________
+
+//*********************************
+// Посмотреть историю поездок
+// Request:
+message HistoryRequest {
+    int32 user_id = 1;
+    int32 limit = 2;
+    int32 page = 3;
+}
+
+//Response:
+// 0, 2, 3, 4
+// 5 - Поездок не найдено
+message HistoryResponse {
+    repeated Order orders = 1;
+    PageMeta meta = 2;
+}
+//_________________________________
+
+//*********************************
+// Оставить отзыв о поездке (Я это понял как закрыть поездку)
+// Здесь есть вопрос, что лучше чтобы клиент добавил новые данные с существующему Order
+// или просто отдал их дополнительными полями в сервис?
+// Request:
+message CloseOrderRequest {
+    Order order = 1; // Здесь клиент заполняет optional поля
+}
+// или
+message CloseOrderRequest{
+    int32 order_id = 1;
+    float estimation = 2;
+    PaymentType payment = 3;
+    repeated Tag tags = 4;
+    string comment = 5;
+}
+
+//Response:
+// 0, 2, 3, 4
+// 5 - Поездок не найдено
+message CloseOrderResponse {
+    Payment payment = 1;
+}
+//_________________________________
+
+
