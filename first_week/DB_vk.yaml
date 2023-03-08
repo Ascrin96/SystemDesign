@@ -1,0 +1,62 @@
+
+# Картинки и Видео в S3
+s3<image_id, Image> Images
+s3<video_id, Video> Videos
+s3<audio_id, Audio> Audios
+
+# # PostgreSQL
+ImagesPosts:
+  id
+  post_id
+  image_s3_id
+
+Avatars:
+  id
+  user_id
+  image_s3_id
+
+VideosPosts:
+  id
+  post_id
+  video_s3_id
+
+AudiosPost:
+  id
+  post_id
+  video_s3_id
+
+VideosPosts:
+  id
+  user_id
+  video_s3_id
+
+AudiosUsers:
+  id
+  user_id
+  video_s3_id
+
+Сities:
+  id
+  city_name
+
+FriendsLists:
+  id
+  user_id (FK Users)
+  friend_id (FK Users)
+
+Users:
+  id
+  name
+  surname
+  avatar_id
+  description
+  city_id
+  birthday
+  email
+  password_hash
+
+Posts:
+  id
+  author
+  description
+  timestamp
