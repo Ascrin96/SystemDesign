@@ -1,0 +1,145 @@
+
+# Картинки, видео, аудио в S3
+s3<image_id, Image> Images
+s3<video_id, Video> Videos
+s3<audio_id, Audio> Audios
+
+# PostgreSQL:
+
+#***********************************************
+# Таблицы для связи с S3
+ImagesPosts:
+  id
+  post_id
+  image_s3_id
+
+# Таблица, где храним ссылку на аватар для чата.
+# По аналогии будет и для группы и для пользователя
+AvatarsСhats:
+  id
+  chat_id
+  image_s3_id
+
+UsersImages:
+  id
+  user_id
+  image_s3_id
+
+VideosInPosts:
+  id
+  post_id
+  video_s3_id
+
+AudiosInPost:
+  id
+  post_id
+  audio_s3_id
+#______________________________________________
+
+#**********************************************
+# Таблицы городов
+Сities:
+  id
+  city_name
+
+# Таблица пользователей
+Users:
+  id
+  name
+  surname
+  description
+  birthday
+  email
+  password_hash
+
+Groups:
+  id
+  description
+#______________________________________________
+
+#**********************************************
+# Все с постами
+# Таблица постов
+Posts:
+  id
+  author
+  description
+  timestamp
+  views_number
+  likes_number
+
+# Кто лайкал пост
+LikesPosts:
+  id
+  post_id
+  author_id # user_id
+
+# Кто смотрел пост
+ViewsPosts:
+  id
+  post_id
+  user_id
+
+# хештеги
+HashTags:
+  id
+  hashtag
+
+PostsHashtags:
+  id
+  hashtag_id
+  post_id
+
+# Комментарии
+Comments:
+  id
+  text
+  post_id
+  author
+  likes_number
+  timestamp
+  parent_comment_id # NULL если это коментарий к самому посту, а не ответ на уже существующий
+#______________________________________________
+
+#**********************************************
+# сообщения и чаты
+Messages:
+  id
+  timestamp
+  text
+  is_read
+  sender_id # user_id
+  chat_id
+
+Chats:
+  id
+  name
+  description
+
+UsersInChats:
+  id
+  user_id
+  chat_id
+
+# Последнее просмотренное сообщение пользователя в чате:
+LastSeenMessage:
+  id
+  user_id
+  message_id
+  chat_id
+#______________________________________________
+
+# Отношения в Neo4j
+
+User (is living)        -> City
+User (is from)          -> City
+
+User (has)              -> Post         # Имеет ли смысл выносить такие отношения в Neo4j
+User (seen)             -> Post         # или просто сделать ещё таблицы в PostgreSQL?
+Croup (has)             -> Post         #
+
+User (is subsriber)     -> Group
+
+User (is friend)        -> User
+User (is subsriber)     -> User
+
